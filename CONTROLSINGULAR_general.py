@@ -3,7 +3,7 @@
 """
 Created on Thu Sep 27 17:50:04 2018
 
-@author: enrique
+@author: enrique, ariel
 """
 
 import numpy as np
@@ -14,7 +14,7 @@ import itertools
 
 plt.close('all')
 
-#--- modelo y pontryagin ---#
+#--- model and pontryagin equations ---#
 
 @jit
 def derivadax1(x1,x2,x3,h,a1,b1,s1,a2,b2,s2,g1,g2,u,p1):
@@ -218,22 +218,7 @@ def rungekuttabackward(t,N,x1,x2,x3,h,a1,b1,s1,a2,b2,s2,a3,b3,k,g1,g2,s3,s4,p1,p
         lamda2[i-1] = lamda2[i] - (h/6.)*(k12  +4.*k32 + k42)
         lamda3[i-1] = lamda3[i] - (h/6.)*(k13  +4.*k33 + k43)
 
-#--- actualizacion de control ---#
-
-#@jit
-#def actualizarcontrol(N,x1,x2,x3,lamda1,lamda2,lamda3,p1,p2,wr,maxu,minu):
-#    u = np.zeros(N+1);
-#    for i in range(0,N+1):
-#        aux = min(maxu,(p1*x1[i]*lamda1[i]+p2*x2[i]*lamda2[i]+x3[i]*lamda3[i])/(2*wr));
-#        u[i] = max(minu,aux)
-#    return u
-        
-#@jit   
-#def actualizarcontrolnocota(N,x1,x2,x3,lamda1,lamda2,lamda3,p1,p2,wr,maxu,minu):
-#    u = np.zeros(N+1);
-#    for i in range(0,N+1):
-#        u[i] = (p1*x1[i]*lamda1[i] +p2*x2[i]*lamda2[i] +x3[i]*lamda3[i])/(2*wr) 
-#    return u;
+#--- control update ---#
         
 @jit    
 def actualizarcontrol_singular(delta,t,N,x1,x2,x3,lamda1,lamda2,lamda3,p1,p2,wr,maxu,minu):
@@ -248,22 +233,23 @@ def actualizarcontrol_singular(delta,t,N,x1,x2,x3,lamda1,lamda2,lamda3,p1,p2,wr,
             u[i]= minu
     return u
 
-#--- creacion de sub-intervalos ---#
 
-# numero de subintervalos
+#--- sub-intervals creation ---#
+
+# sub-intervals number
 ventanas = 25
 
-# tiempo inicial y final
+# initial and final times
 a = 0.
 b = 250.
 
-# tamano de cada subintervalo
+# sub-intervals width
 dias = (b-a)/float(ventanas)
 
-# discretizacion de cada subintervalo
+# sub-intervals discretization
 N = int(dias)*10;
 
-#--- parametros para modelo y pontryagin ---#
+#--- model and pontryagin parameters ---#
 
 x1 = np.zeros(N+1)
 x2 = np.zeros(N+1)
