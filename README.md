@@ -1,2 +1,1 @@
-# bonemetas-bang
-Bone metastasis radiotherapy model, linear model
+# Bone metastasis radiotherapy model, linear model
