@@ -233,185 +233,189 @@ def actualizarcontrol_singular(delta,t,N,x1,x2,x3,lamda1,lamda2,lamda3,p1,p2,wr,
             u[i]= minu
     return u
 
+def bang_simulation_Sc1(t0, tf, NoWin, B, MinU, MaxU):
+    #--- sub-intervals creation ---#
 
-#--- sub-intervals creation ---#
+    # sub-intervals number
+    ventanas = NoWin
 
-# sub-intervals number
-ventanas = 25
+    # initial and final times
+    a = float(t0)
+    b = float(tf)
 
-# initial and final times
-a = 0.
-b = 250.
+    # sub-intervals width
+    dias = (b-a)/float(ventanas)
 
-# sub-intervals width
-dias = (b-a)/float(ventanas)
+    # sub-intervals discretization
+    N = int(dias)*10;
 
-# sub-intervals discretization
-N = int(dias)*10;
+    #--- model and pontryagin parameters ---#
 
-#--- model and pontryagin parameters ---#
+    x1 = np.zeros(N+1)
+    x2 = np.zeros(N+1)
+    x3 = np.zeros(N+1)
 
-x1 = np.zeros(N+1)
-x2 = np.zeros(N+1)
-x3 = np.zeros(N+1)
-
-lamda1 = np.zeros(N+1)
-lamda2 = np.zeros(N+1)
-lamda3 = np.zeros(N+1)
-
-x1[0]=4.42*10**(-6)
-x2[0]=4.46
-x3[0]=1000.0
-
-k = 10.0**(4)
-
-p1 = 1.0
-p2 = 1.0
-
-#- Scenario 1 -#
-
-a1 = 0.5
-a2 = 0.05
-a3 = 1.5*10**(-2)
-
-b1 = 0.2
-b2 = 0.02
-b3 = 0.0
-
-g1 = -0.3;
-g2 = 0.7
-
-s1 = 1.0*10**(-6)
-s2 = 0.0
-s3 = 1*10**(-3)
-s4 = 0*10**(-4)
-
-#- pontryagin -#
-
-wr   = 5.*10**(8)
-
-minu = 0.0
-maxu = 0.01
-
-#--- forward-backward ---#
-
-delta  = 0.*10**(-7)
-delta2 = 1.*10**(-7)
-
-exponente = 0.5
-
-iteracion   = 0
-iteraciomax = 50
-
-JJ = []
-
-uu = []
-
-xx1 = []
-xx2 = []
-xx3 = []
-
-tt = []
-
-# 0 si converge, 1 si no converge
-flags = np.zeros(ventanas)
-
-for i in range(0,ventanas):
-    print("Iteracion externa: ",i)
-    aAux = a + i*dias
-    bAux = a + (i+1)*dias
-    
-    t = np.linspace(aAux,bAux,N+1);
-    h = dias/float(N)
-    u = np.zeros(N+1)
-    
-    test = -1
-    
-    iteracion = 0
-    #c = c**exponente
-    
-    J = [];
-    while test < 0.0 :
-        print("Iteracion interna: ",iteracion)
-        
-        oldu  = u.copy()
-        
-        oldx1 = x1.copy()
-        oldx2 = x2.copy()
-        oldx3 = x3.copy()
-        
-        oldlamda1 = lamda1.copy()
-        oldlamda2 = lamda2.copy()
-        oldlamda3 = lamda3.copy()
-        
-        rungekuttaforward(t,N,
-                          x1,x2,x3,
-                          h,a1,b1,s1,a2,b2,s2,a3,b3,k,g1,g2,s3,s4,u,p1,p2)
-        
-        rungekuttabackward(t,N,
-                           x1,x2,x3,
-                           h,a1,b1,s1,a2,b2,s2,a3,b3,k,g1,g2,s3,s4,p1,p2,u,
-                           lamda1,lamda2,lamda3)
-        
-        conmutador = InterpolatedUnivariateSpline(t, wr - p1*x1*lamda1 - p2*x2*lamda2 - x3*lamda3, k=5)
-    
-        u = actualizarcontrol_singular(delta,t,N,
-                                       x1,x2,x3,
-                                       lamda1,lamda2,lamda3,
-                                       p1,p2,wr,maxu,minu)
-
-        J.append(np.trapz(wr*u + x3**2,t))
-    
-        temp1 = delta2*sum(abs(u)) -sum(abs(oldu -u))
-        
-        temp2 = delta2*sum(abs(x1)) -sum(abs(oldx1 -x1))
-        temp3 = delta2*sum(abs(x2)) -sum(abs(oldx2 -x2))
-        temp4 = delta2*sum(abs(x3)) -sum(abs(oldx3 -x3))
-        
-        temp5 = delta2*sum(abs(lamda1)) -sum(abs(oldlamda1 -lamda1))
-        temp6 = delta2*sum(abs(lamda2)) -sum(abs(oldlamda2 -lamda2))
-        temp7 = delta2*sum(abs(lamda3)) -sum(abs(oldlamda3 -lamda3))
-        
-        test = min(temp1,temp2,temp3,temp4,temp5,temp6,temp7)
-        
-        print(test)
-        print(temp1)
-        
-        iteracion = iteracion + 1
-        
-        if(iteracion > iteraciomax):
-            print("maximo numero de iteraciones")
-            flags[i] = 1 #guardar la falta de convergencia
-            break
-   
-    JJ.append(J[-1])
-    
-    uu.append(u)
-    
-    xx1.append(x1.copy())
-    xx2.append(x2.copy())
-    xx3.append(x3.copy())
-    
-    tt.append(t.copy())
-    
-    x1[0] = x1[N]
-    x2[0] = x2[N]
-    x3[0] = x3[N]
-    
     lamda1 = np.zeros(N+1)
     lamda2 = np.zeros(N+1)
     lamda3 = np.zeros(N+1)
 
-#--- resultados ---#
+    x1[0]=4.42*10**(-6)
+    x2[0]=4.46
+    x3[0]=1000.0
 
-# pegar los arreglos en uno solo
-xx1new = list(itertools.chain(*xx1))
-xx2new = list(itertools.chain(*xx2))
-xx3new = list(itertools.chain(*xx3))
+    k = 10.0**(4)
 
-uuNew = list(itertools.chain(*uu))
+    p1 = 1.0
+    p2 = 1.0
 
-ttNew = list(itertools.chain(*tt))
+    #- Scenario 1 -#
+
+    a1 = 0.5
+    a2 = 0.05
+    a3 = 1.5*10**(-2)
+
+    b1 = 0.2
+    b2 = 0.02
+    b3 = 0.0
+
+    g1 = -0.3;
+    g2 = 0.7
+
+    s1 = 1.0*10**(-6)
+    s2 = 0.0
+    s3 = 1*10**(-3)
+    s4 = 0*10**(-4)
+
+    #- pontryagin -#
+
+    wr   = B
+
+    minu = MinU
+    maxu = MaxU
+
+    #--- forward-backward ---#
+
+    delta  = 0.*10**(-7)
+    delta2 = 1.*10**(-7)
+
+    exponente = 0.5
+
+    iteracion   = 0
+    iteraciomax = 50
+
+    JJ = []
+
+    uu = []
+
+    xx1 = []
+    xx2 = []
+    xx3 = []
+
+    tt = []
+
+    # 0 -> convergence, 1 -> no convergence
+    flags = np.zeros(ventanas)
+
+    for i in range(0,ventanas):
+        print("Iteracion externa: ",i)
+        aAux = a + i*dias
+        bAux = a + (i+1)*dias
+
+        t = np.linspace(aAux,bAux,N+1);
+        h = dias/float(N)
+        u = np.zeros(N+1)
+
+        test = -1
+
+        iteracion = 0
+        #c = c**exponente
+
+        J = [];
+        while test < 0.0 :
+            print("Iteracion interna: ",iteracion)
+
+            oldu  = u.copy()
+
+            oldx1 = x1.copy()
+            oldx2 = x2.copy()
+            oldx3 = x3.copy()
+
+            oldlamda1 = lamda1.copy()
+            oldlamda2 = lamda2.copy()
+            oldlamda3 = lamda3.copy()
+
+            rungekuttaforward(t,N,
+                              x1,x2,x3,
+                              h,a1,b1,s1,a2,b2,s2,a3,b3,k,g1,g2,s3,s4,u,p1,p2)
+
+            rungekuttabackward(t,N,
+                               x1,x2,x3,
+                               h,a1,b1,s1,a2,b2,s2,a3,b3,k,g1,g2,s3,s4,p1,p2,u,
+                               lamda1,lamda2,lamda3)
+
+            conmutador = InterpolatedUnivariateSpline(t, wr - p1*x1*lamda1 - p2*x2*lamda2 - x3*lamda3, k=5)
+
+            u = actualizarcontrol_singular(delta,t,N,
+                                           x1,x2,x3,
+                                           lamda1,lamda2,lamda3,
+                                           p1,p2,wr,maxu,minu)
+
+            J.append(np.trapz(wr*u + x3**2,t))
+
+            temp1 = delta2*sum(abs(u)) -sum(abs(oldu -u))
+
+            temp2 = delta2*sum(abs(x1)) -sum(abs(oldx1 -x1))
+            temp3 = delta2*sum(abs(x2)) -sum(abs(oldx2 -x2))
+            temp4 = delta2*sum(abs(x3)) -sum(abs(oldx3 -x3))
+
+            temp5 = delta2*sum(abs(lamda1)) -sum(abs(oldlamda1 -lamda1))
+            temp6 = delta2*sum(abs(lamda2)) -sum(abs(oldlamda2 -lamda2))
+            temp7 = delta2*sum(abs(lamda3)) -sum(abs(oldlamda3 -lamda3))
+
+            test = min(temp1,temp2,temp3,temp4,temp5,temp6,temp7)
+
+            print(test)
+            print(temp1)
+
+            iteracion = iteracion + 1
+
+            if(iteracion > iteraciomax):
+                print("maximo numero de iteraciones")
+                flags[i] = 1 #guardar la falta de convergencia
+                break
+
+        JJ.append(J[-1])
+
+        uu.append(u)
+
+        xx1.append(x1.copy())
+        xx2.append(x2.copy())
+        xx3.append(x3.copy())
+
+        tt.append(t.copy())
+
+        x1[0] = x1[N]
+        x2[0] = x2[N]
+        x3[0] = x3[N]
+
+        lamda1 = np.zeros(N+1)
+        lamda2 = np.zeros(N+1)
+        lamda3 = np.zeros(N+1)
+
+    #--- resultados ---#
+
+    # join arrays
+    xx1new = list(itertools.chain(*xx1))
+    xx2new = list(itertools.chain(*xx2))
+    xx3new = list(itertools.chain(*xx3))
+
+    uuNew = list(itertools.chain(*uu))
+
+    ttNew = list(itertools.chain(*tt))
+    
+    return ttNew, xx1new, xx2new, xx3new, uuNew
+
+ttNew, xx1new, xx2new, xx3new, uuNew = bang_simulationSc1(0, 250, 25, 0., 0.01)
 
 #--- plots ---#
 plt.figure()
