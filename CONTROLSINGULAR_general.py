@@ -2,7 +2,7 @@
 """
 Created on Thu Sep 27 17:50:04 2018
 
-@author: enrique, ariel
+@author: Enrique Diaz, Ariel Camacho
 """
 
 import numpy as np
