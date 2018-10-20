@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu Sep 27 17:50:04 2018
@@ -234,6 +233,13 @@ def actualizarcontrol_singular(delta,t,N,x1,x2,x3,lamda1,lamda2,lamda3,p1,p2,wr,
     return u
 
 def bang_simulation_Sc1(t0, tf, NoWin, B, MinU, MaxU):
+    '''
+    [t0, tf] -> time window
+    NoWin -> number of sub-intervals
+    B -> weight parameter
+    MinU, MaxU -> control bounds
+    '''
+    
     #--- sub-intervals creation ---#
 
     # sub-intervals number
@@ -332,7 +338,7 @@ def bang_simulation_Sc1(t0, tf, NoWin, B, MinU, MaxU):
 
         J = [];
         while test < 0.0 :
-            print("Iteracion interna: ",iteracion)
+            print("External iteration: ",iteracion)
 
             oldu  = u.copy()
 
@@ -380,7 +386,7 @@ def bang_simulation_Sc1(t0, tf, NoWin, B, MinU, MaxU):
             iteracion = iteracion + 1
 
             if(iteracion > iteraciomax):
-                print("maximo numero de iteraciones")
+                print("WARNING: maximum iterations reached.")
                 flags[i] = 1 #guardar la falta de convergencia
                 break
 
@@ -402,7 +408,7 @@ def bang_simulation_Sc1(t0, tf, NoWin, B, MinU, MaxU):
         lamda2 = np.zeros(N+1)
         lamda3 = np.zeros(N+1)
 
-    #--- resultados ---#
+    #--- results ---#
 
     # join arrays
     xx1new = list(itertools.chain(*xx1))
@@ -413,9 +419,19 @@ def bang_simulation_Sc1(t0, tf, NoWin, B, MinU, MaxU):
 
     ttNew = list(itertools.chain(*tt))
     
+    print("#--REPORT---#")
+
+    if any(flags==1):
+        print("WARNING! Some sub-interval did not converge:")
+        print(flags)
+
+    print("Cost functional J value: ",sum(JJ))
+    
     return ttNew, xx1new, xx2new, xx3new, uuNew
 
-ttNew, xx1new, xx2new, xx3new, uuNew = bang_simulationSc1(0, 250, 25, 0., 0.01)
+#--- numerical experiments ---#
+
+ttNew, xx1new, xx2new, xx3new, uuNew = bang_simulationSc1(0, 250, 25, 1.0e8, 0., 0.01)
 
 #--- plots ---#
 plt.figure()
@@ -429,11 +445,3 @@ plt.plot(ttNew,xx3new)
 
 plt.figure()
 plt.plot(ttNew,uuNew)
-
-print("#--REPORTE---#")
-      
-if any(flags==1):
-    print("Algun sub-intervalo no convergio. Ver flags:")
-    print(flags)
-    
-print("La integral de J vale: ",sum(JJ))
